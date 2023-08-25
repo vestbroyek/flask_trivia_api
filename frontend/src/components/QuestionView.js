@@ -25,11 +25,16 @@ class QuestionView extends Component {
       url: `/questions?page=${this.state.page}`, //TODO: update request URL
       type: 'GET',
       success: (result) => {
+        let categoryObject = {};
+        result.categories.forEach(category => {
+          categoryObject[category.id] = category.type;
+        });
+
         this.setState({
-          questions: result.questions,
-          totalQuestions: result.total_questions,
-          categories: result.categories,
-          currentCategory: result.current_category,
+            questions: result.questions,
+            totalQuestions: result.total_questions,
+            categories: categoryObject,
+            currentCategory: result.current_category,
         });
         return;
       },
@@ -84,11 +89,11 @@ class QuestionView extends Component {
 
   submitSearch = (searchTerm) => {
     $.ajax({
-      url: `/questions`, //TODO: update request URL
+      url: `/questions/search`,
       type: 'POST',
       dataType: 'json',
       contentType: 'application/json',
-      data: JSON.stringify({ searchTerm: searchTerm }),
+      data: JSON.stringify({ search_term: searchTerm }),
       xhrFields: {
         withCredentials: true,
       },
