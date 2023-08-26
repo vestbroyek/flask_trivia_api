@@ -68,13 +68,13 @@ def create_app(test_config=None):
         categories = Category.query.all()
         formatted_categories = [category.format() for category in categories]
 
+        # "Current category" is required in spec but unclear why
         return jsonify(
             {
                 "success": True,
                 "questions": formatted_questions[start:end],
                 "total_questions": len(formatted_questions),
                 "categories": formatted_categories,
-                "current_category": formatted_categories[0],
             }
         )
 
@@ -129,18 +129,13 @@ def create_app(test_config=None):
         result = Question.query.filter(Question.question.icontains(query))
         formatted_result = [question.format() for question in result]
 
-        if not formatted_result:
-            abort(404)
-
-        else:
-            return jsonify(
-                {
-                    "success": True,
-                    "questions": formatted_result,
-                    "total_questions": len(formatted_result),
-                    "current_category": "science",
-                }
-            )
+        return jsonify(
+            {
+                "success": True,
+                "questions": formatted_result,
+                "total_questions": len(formatted_result),
+            }
+        )
 
     @app.route("/categories/<int:category_id>/questions")
     def get_questions_by_category(category_id):
@@ -148,35 +143,31 @@ def create_app(test_config=None):
         result = Question.query.filter(Question.category == category_id)
         formatted_result = [question.format() for question in result]
 
-        if not formatted_result:
+        # get current category
+        category = Category.query.filter(Category.id == category_id).one_or_none()
+
+        if not formatted_result or not category:
             abort(404)
+
+        formatted_category = category.format()
 
         return jsonify(
             {
                 "success": True,
                 "questions": formatted_result,
                 "total_questions": len(formatted_result),
-                "current_category": "science",
+                "current_category": formatted_category["type"],
             }
         )
-
-    """
-    @TODO:
-    Create a POST endpoint to get questions to play the quiz.
-    This endpoint should take category and previous question parameters
-    and return a random questions within the given category,
-    if provided, and that is not one of the previous questions.
-
-    TEST: In the "Play" tab, after a user selects "All" or a category,
-    one question at a time is displayed, the user is allowed to answer
-    and shown whether they were correct or not.
-    """
 
     @app.route("/quizzes", methods=["POST"])
     def start_quiz():
         # Get previous questions and the desired category
-        previous_questions = request.json["previous_questions"]
-        quiz_category = request.json["quiz_category"]["id"]
+        try:
+            previous_questions = request.json["previous_questions"]
+            quiz_category = request.json["quiz_category"]["id"]
+        except KeyError:
+            abort(400)
 
         # Filter existing questions
         questions = Question.query.filter(
@@ -185,13 +176,9 @@ def create_app(test_config=None):
 
         formatted_questions = [question.format() for question in questions]
 
-        if formatted_questions:
-            return jsonify(
-                {"success": True, "question": random.choice(formatted_questions)}
-            )
-
-        else:
-            abort(404)
+        return jsonify(
+            {"success": True, "question": random.choice(formatted_questions)}
+        )
 
     @app.errorhandler(404)
     def not_found(error):
