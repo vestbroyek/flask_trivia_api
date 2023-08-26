@@ -1,104 +1,425 @@
-# Backend - Trivia API
+# Trivia API 
+This API can be used to retrieve and post trivia questions in a variety o categories. It also powers a React web app. 
 
-## Setting up the Backend
+The API has endpoints for retrieving available categories, all questions for a specific category, for retrieving, posting, and deleting questions, and for initiating a trivia quiz (see API Reference below).
 
-### Install Dependencies
+## Table of contents
+1. [Getting started](#getting-started)
+    1. [The backend](#the-backend)
+        1. [The database](#the-database)
+        2. [Flask](#flask)
+    2. [The frontend](#the-frontend)
+    3. [Tests](#tests)
+2. [API reference](#api-reference)
+    1. [/categories - GET](#categories--get)
+    2. [/categories/category_id/questions - GET](#categoriescategory_idquestions--get)
+    3. [/questions - GET](#questions--get)
+    4. [/questions - POST](#questions--post)
+    5. [/questions/question_id - DELETE](#questionsquestion_id---delete)
+    6. [/questions/search - POST](#questionssearch--post)
+    7. [/quizzes - POST](#quizzes--post)
 
-1. **Python 3.7** - Follow instructions to install the latest version of python for your platform in the [python docs](https://docs.python.org/3/using/unix.html#getting-and-installing-the-latest-version-of-python)
 
-2. **Virtual Environment** - We recommend working within a virtual environment whenever using Python for projects. This keeps your dependencies for each project separate and organized. Instructions for setting up a virual environment for your platform can be found in the [python docs](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
+## Getting started 
+To get started with the API, you'll need to set up both the backend and the frontend.
 
-3. **PIP Dependencies** - Once your virtual environment is setup and running, install the required dependencies by navigating to the `/backend` directory and running:
+### The backend
+#### The database
+To set up your database, run a Postgres container (or set up a local server) with 
 
-```bash
-pip install -r requirements.txt
-```
+`docker run -p 5432:5432 -e POSTGRES_USER=student -e POSTGRES_PASSWORD=password -e POSTGRES_DB=trivia postgres`
 
-#### Key Pip Dependencies
+This will map your machine's port 5432 to the container's 5432, so you will be able to access the database, called `trivia`, at `localhost:5432`, with username `student` and password `password`. 
 
-- [Flask](http://flask.pocoo.org/) is a lightweight backend microservices framework. Flask is required to handle requests and responses.
+Then, in the database, run `backend/trivia_init.sql` to create the tables and set up permissions.
 
-- [SQLAlchemy](https://www.sqlalchemy.org/) is the Python SQL toolkit and ORM we'll use to handle the lightweight SQL database. You'll primarily work in `app.py`and can reference `models.py`.
+#### Flask
+To get the API running, make a virtual environment, navigate to the `backend` folder, and install dependencies with `pip3 install -r requirements.txt`. Note that these dependencies have been tested with Python 3.10.9. If you are using a different version (especially <3.10), you may need to tweak the versions on Flask, flask-sqlalchemy, SQLAlchemy, and Jinja2.
 
-- [Flask-CORS](https://flask-cors.readthedocs.io/en/latest/#) is the extension we'll use to handle cross-origin requests from our frontend server.
+Next, from the `backend` folder, ensure you run `export FLASK_APP=flaskr` and then run `flask run`. The app is defined in `__init__.py`. 
 
-### Set up the Database
+### The frontend
+From the `frontend` folder, run `npm install`. (If you don't have npm installed, run `brew install node` or similar for your OS first). Then run `npm start`. You should now be able to access `localhost:3000` and see the app. 
 
-With Postgres running, create a `trivia` database:
+### Tests
+Tests are defined in `backend/test_flaskr.py`. They rely on having a test database set up. This is expected to be called `test_trivia`. To run tests, first create the database by running `create database test_trivia`, editing your connection to connect to this database (instead of to `trivia`, the "production" database), and re-run `trivia_init.sql`. 
 
-```bash
-createdb trivia
-```
+Now you can run `test_flaskr.py`. 
 
-Populate the database using the `trivia.psql` file provided. From the `backend` folder in terminal run:
+## API reference
+### Getting started
+- Base URL: At present this app can only be run locally and is not hosted as a base URL. The backend app is hosted at the default, `http://127.0.0.1:5000/`, which is set as a proxy in the frontend configuration. 
+- Authentication: This version of the application does not require authentication or API keys. 
 
-```bash
-psql trivia < trivia.psql
-```
+### Endpoints
 
-### Run the Server
+#### /categories - GET
+- Functionality
+    - Returns:
+        - `categories: list`: a list of categories, each with an `id: int` and `type: str`
+        - `success: bool`: successful status
+- Sample
+    - Request: `curl localhost:5000/categories`
+    - Response:
+    <details>
+    <summary>Click to expand</summary>
 
-From within the `./src` directory first ensure you are working using your created virtual environment.
+        ```json
+        {
+        "categories": [
+            {
+            "id": 1,
+            "type": "Science"
+            },
+            {
+            "id": 2,
+            "type": "Art"
+            },
+            {
+            "id": 3,
+            "type": "Geography"
+            },
+            {
+            "id": 4,
+            "type": "History"
+            },
+            {
+            "id": 5,
+            "type": "Entertainment"
+            },
+            {
+            "id": 6,
+            "type": "Sports"
+            }
+        ],
+        "success": true
+        }
+        ```
+        </details>
 
-To run the server, execute:
+#### /categories/category_id/questions - GET
+- Functionality
+    - Requires:
+        - `category_id: int`: a category ID whose questions you'd like to return
+    - Returns:
+        - `current_category: str`: the category you requested the questions for
+        - `questions: list`: a list of questions
+        - `success: bool`: successful status
+        - `total_questions: int`: the number of questions returned
+    - Raises:
+        - 404 Not found: if the category ID does not exist
+- Sample
+    - Request: `curl localhost:5000/categories/4/questions`
+    - Response: 
+    <details>
+    <summary>Click to expand</summary>
 
-```bash
-flask run --reload
-```
+    ```json
+    {
+    "current_category": "History",
+    "questions": [
+        {
+        "answer": "Maya Angelou",
+        "category": 4,
+        "difficulty": 2,
+        "id": 5,
+        "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+        },
+        {
+        "answer": "Muhammad Ali",
+        "category": 4,
+        "difficulty": 1,
+        "id": 9,
+        "question": "What boxer's original name is Cassius Clay?"
+        },
+        {
+        "answer": "George Washington Carver",
+        "category": 4,
+        "difficulty": 2,
+        "id": 12,
+        "question": "Who invented Peanut Butter?"
+        },
+        {
+        "answer": "Scarab",
+        "category": 4,
+        "difficulty": 4,
+        "id": 23,
+        "question": "Which dung beetle was worshipped by the ancient Egyptians?"
+        },
+        {
+        "answer": "The sky",
+        "category": 4,
+        "difficulty": 1,
+        "id": 28,
+        "question": "What's up?"
+        },
+        {
+        "answer": "The sky",
+        "category": 4,
+        "difficulty": 1,
+        "id": 29,
+        "question": "What's up?"
+        },
+        {
+        "answer": "The sky",
+        "category": 4,
+        "difficulty": 1,
+        "id": 30,
+        "question": "What's up?"
+        }
+    ],
+    "success": true,
+    "total_questions": 7
+    }
+    ```
+    </details>
 
-The `--reload` flag will detect file changes and restart the server automatically.
+#### `/questions - GET`
+- Functionality
+    - Requires:
+        - `page: int`: a page number (optional)
+    - Returns:
+        - `success: bool`: Successful status
+        - `questions: list`: A list of questions
+        - `total_questions: int`: Total questions available
+        - `categories: list`: The categories
 
-## To Do Tasks
+- Sample
+    - Request: `curl localhost:5000/questions?page=1`
+    - Response: 
+    <details>
+    <summary>Click to expand</summary>
 
-These are the files you'd want to edit in the backend:
+    ```json
+    {
+    "categories": [
+        {
+        "id": 1,
+        "type": "Science"
+        },
+        {
+        "id": 2,
+        "type": "Art"
+        },
+        {
+        "id": 3,
+        "type": "Geography"
+        },
+        {
+        "id": 4,
+        "type": "History"
+        },
+        {
+        "id": 5,
+        "type": "Entertainment"
+        },
+        {
+        "id": 6,
+        "type": "Sports"
+        }
+    ],
+    "questions": [
+        {
+        "answer": "Maya Angelou",
+        "category": 4,
+        "difficulty": 2,
+        "id": 5,
+        "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+        },
+        {
+        "answer": "Muhammad Ali",
+        "category": 4,
+        "difficulty": 1,
+        "id": 9,
+        "question": "What boxer's original name is Cassius Clay?"
+        },
+        {
+        "answer": "Edward Scissorhands",
+        "category": 5,
+        "difficulty": 3,
+        "id": 6,
+        "question": "What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?"
+        },
+        {
+        "answer": "Brazil",
+        "category": 6,
+        "difficulty": 3,
+        "id": 10,
+        "question": "Which is the only team to play in every soccer World Cup tournament?"
+        },
+        {
+        "answer": "Uruguay",
+        "category": 6,
+        "difficulty": 4,
+        "id": 11,
+        "question": "Which country won the first ever soccer World Cup in 1930?"
+        },
+        {
+        "answer": "George Washington Carver",
+        "category": 4,
+        "difficulty": 2,
+        "id": 12,
+        "question": "Who invented Peanut Butter?"
+        },
+        {
+        "answer": "Lake Victoria",
+        "category": 3,
+        "difficulty": 2,
+        "id": 13,
+        "question": "What is the largest lake in Africa?"
+        },
+        {
+        "answer": "The Palace of Versailles",
+        "category": 3,
+        "difficulty": 3,
+        "id": 14,
+        "question": "In which royal palace would you find the Hall of Mirrors?"
+        },
+        {
+        "answer": "Agra",
+        "category": 3,
+        "difficulty": 2,
+        "id": 15,
+        "question": "The Taj Mahal is located in which Indian city?"
+        },
+        {
+        "answer": "Escher",
+        "category": 2,
+        "difficulty": 1,
+        "id": 16,
+        "question": "Which Dutch graphic artist–initials M C was a creator of optical illusions?"
+        }
+    ],
+    "success": true,
+    "total_questions": 21
+    }
+    ```
+    </details>
 
-1. `backend/flaskr/__init__.py`
-2. `backend/test_flaskr.py`
+#### `/questions - POST` 
+- Functionality
+    - Requires: 
+        - `question: str`: A question
+        - `answer: str`: The answer
+        - `difficulty: int`: The difficulty, 1-5
+        - `category: str`: The category, 1-6 
+    - Returns:
+        - `success: bool`: Successful status
+    - Raises:
+        - 400 Bad request: if one or more of the above keys is not provided
+        - 500 Server error: any other errors while processing the request
+- Sample
+    - Request: `curl -X POST -H "Content-Type: application/json" -d '{"question": "What is up?", "answer": "The sky", "difficulty": 4, "category": 1}' localhost:5000/questions`
+    - Response: 
+    <details>
+    <summary>Click to expand</summary>
 
-One note before you delve into your tasks: for each endpoint, you are expected to define the endpoint and response data. The frontend will be a plentiful resource because it is set up to expect certain endpoints and response data formats already. You should feel free to specify endpoints in your own way; if you do so, make sure to update the frontend or you will get some unexpected behavior.
+    ```json
+    {"success":true}
+    ```
+    </details>
 
-1. Use Flask-CORS to enable cross-domain requests and set response headers.
-2. Create an endpoint to handle `GET` requests for questions, including pagination (every 10 questions). This endpoint should return a list of questions, number of total questions, current category, categories.
-3. Create an endpoint to handle `GET` requests for all available categories.
-4. Create an endpoint to `DELETE` a question using a question `ID`.
-5. Create an endpoint to `POST` a new question, which will require the question and answer text, category, and difficulty score.
-6. Create a `POST` endpoint to get questions based on category.
-7. Create a `POST` endpoint to get questions based on a search term. It should return any questions for whom the search term is a substring of the question.
-8. Create a `POST` endpoint to get questions to play the quiz. This endpoint should take a category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions.
-9. Create error handlers for all expected errors including 400, 404, 422, and 500.
+#### `/questions/question_id - DELETE`
+- Functionality
+    - Requires:
+        - `question_id: int`
+    - Returns: 
+        - `success: bool`: Successful status
+    - Raises:
+        - 404 Not found: If no question matches the provided ID
+        - 422 Unprocesseable: Any other issues while processing the request
 
-## Documenting your Endpoints
+- Sample
+    - Request: `curl -X DELETE -H "Content-Type: application/json" localhost:5000/questions/11`
+    - Response: 
+    <details>
+    <summary>Click to expand</summary>
 
-You will need to provide detailed documentation of your API endpoints including the URL, request parameters, and the response body. Use the example below as a reference.
+    ```json
+    {"success":true}
+    ```
+    </details>
 
-### Documentation Example
+#### `/questions/search - POST`
+- Functionality
+    - Requires:
+        - `search_term: str`: A search term. 
+            - Search for substrings 
+    - Returns:
+        - `success: bool`: Successful status
+        - `questions: list`: A list of matching questions
+        - `total_questions: int`: The number of matching questions
+- Sample
+    - Request: ` curl -X POST -H "Content-Type: application/json" -d '{"search_term": "title"}' localhost:5000/questions/search`
+    - Response: 
+    <details>
+    <summary>Click to expand</summary>
 
-`GET '/api/v1.0/categories'`
+    ```json
+    {
+    "questions": [
+        {
+        "answer": "Maya Angelou",
+        "category": 4,
+        "difficulty": 2,
+        "id": 5,
+        "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+        },
+        {
+        "answer": "Edward Scissorhands",
+        "category": 5,
+        "difficulty": 3,
+        "id": 6,
+        "question": "What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?"
+        }
+    ],
+    "success": true,
+    "total_questions": 2
+    }
+    ```
+    </details>
 
-- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
-- Request Arguments: None
-- Returns: An object with a single key, `categories`, that contains an object of `id: category_string` key: value pairs.
+#### `/quizzes - POST`
+- Functionality
+    - Requires:
+        - `previous_questions: list`: Previously played question IDs
+        - `quiz_category: dict`: The desired category 
+    - Returns:
+        - `success: bool`: Successful status
+        - `question: dict`: A randomly chosen question
+    - Raises:
+        - 400 Bad request: If either of the required parameters is not supplied
+- Sample
+    - Request: `curl -X POST -H "Content-Type: application/json" -d '{"previous_questions": [], "quiz_category": {"id": 1, "type": "Science"}}' localhost:5000/quizzes`
+    - Response: 
+    <details>
+    <summary>Click to expand</summary>
 
+    ```json
+    {
+    "question": {
+        "answer": "The Liver",
+        "category": 1,
+        "difficulty": 4,
+        "id": 20,
+        "question": "What is the heaviest organ in the human body?"
+    },
+    "success": true
+    }
+    ```
+    </details>
+
+### Error handling
+Errors are returned as JSON objects in the following format:
 ```json
 {
-  "1": "Science",
-  "2": "Art",
-  "3": "Geography",
-  "4": "History",
-  "5": "Entertainment",
-  "6": "Sports"
+    "success": False, 
+    "error": 400,
+    "message": "Bad request"
 }
 ```
-
-## Testing
-
-Write at least one test for the success and at least one error behavior of each endpoint using the unittest library.
-
-To deploy the tests, run
-
-```bash
-dropdb trivia_test
-createdb trivia_test
-psql trivia_test < trivia.psql
-python test_flaskr.py
-```
+The API will return three error types when requests fail:
+- 400: Bad Request
+- 404: Resource Not Found
+- 422: Not Processable 
+- 500: Server error
