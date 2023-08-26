@@ -64,38 +64,38 @@ Now you can run `test_flaskr.py`.
     <details>
     <summary>Click to expand</summary>
 
-        ```json
+    ```json
+    {
+    "categories": [
         {
-        "categories": [
-            {
-            "id": 1,
-            "type": "Science"
-            },
-            {
-            "id": 2,
-            "type": "Art"
-            },
-            {
-            "id": 3,
-            "type": "Geography"
-            },
-            {
-            "id": 4,
-            "type": "History"
-            },
-            {
-            "id": 5,
-            "type": "Entertainment"
-            },
-            {
-            "id": 6,
-            "type": "Sports"
-            }
-        ],
-        "success": true
+        "id": 1,
+        "type": "Science"
+        },
+        {
+        "id": 2,
+        "type": "Art"
+        },
+        {
+        "id": 3,
+        "type": "Geography"
+        },
+        {
+        "id": 4,
+        "type": "History"
+        },
+        {
+        "id": 5,
+        "type": "Entertainment"
+        },
+        {
+        "id": 6,
+        "type": "Sports"
         }
-        ```
-        </details>
+    ],
+    "success": true
+    }
+    ```
+    </details>
 
 #### /categories/category_id/questions - GET
 - Functionality
@@ -413,7 +413,7 @@ Now you can run `test_flaskr.py`.
 Errors are returned as JSON objects in the following format:
 ```json
 {
-    "success": False, 
+    "success": false, 
     "error": 400,
     "message": "Bad request"
 }
