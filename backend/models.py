@@ -9,8 +9,10 @@ db = SQLAlchemy()
 Question
 
 """
+
+
 class Question(db.Model):
-    __tablename__ = 'questions'
+    __tablename__ = "questions"
 
     id = Column(Integer, primary_key=True)
     question = Column(String)
@@ -37,19 +39,22 @@ class Question(db.Model):
 
     def format(self):
         return {
-            'id': self.id,
-            'question': self.question,
-            'answer': self.answer,
-            'category': self.category,
-            'difficulty': self.difficulty
-            }
+            "id": self.id,
+            "question": self.question,
+            "answer": self.answer,
+            "category": self.category,
+            "difficulty": self.difficulty,
+        }
+
 
 """
 Category
 
 """
+
+
 class Category(db.Model):
-    __tablename__ = 'categories'
+    __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True)
     type = Column(String)
@@ -58,7 +63,4 @@ class Category(db.Model):
         self.type = type
 
     def format(self):
-        return {
-            'id': self.id,
-            'type': self.type
-            }
+        return {"id": self.id, "type": self.type}
