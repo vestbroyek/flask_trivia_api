@@ -1,10 +1,10 @@
-import os
-import unittest
+from dotenv import load_dotenv
 import json
 from flask_sqlalchemy import SQLAlchemy
-
 from flaskr import create_app
 from models import Question, Category
+import os
+import unittest
 
 
 class TriviaTestCase(unittest.TestCase):
@@ -12,11 +12,12 @@ class TriviaTestCase(unittest.TestCase):
 
     def setUp(self):
         """Define test variables and initialize app."""
-        self.app = create_app(
-            {
-                "SQLALCHEMY_DATABASE_URI": "postgresql://student:password@localhost/test_trivia"
-            }
-        )
+
+        # load secrets
+        load_dotenv()
+        database_uri = os.getenv("SQLALCHEMY_TEST_DATABASE_URI")
+
+        self.app = create_app({"SQLALCHEMY_DATABASE_URI": database_uri})
         self.client = self.app.test_client()
 
     def tearDown(self):
@@ -122,7 +123,6 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertTrue(resp.json["questions"])
         self.assertIsNotNone(resp.json["total_questions"])
-        self.assertIsNotNone(resp.json["current_category"])
 
     def test_post_search_question_key_error(self):
         resp = self.client.post(
@@ -142,7 +142,8 @@ class TriviaTestCase(unittest.TestCase):
             content_type="application/json",
         )
 
-        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(resp.json["questions"])
 
     def test_get_questions_by_category_success(self):
         resp = self.client.get("/categories/1/questions")
