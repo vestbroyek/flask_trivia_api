@@ -350,7 +350,7 @@ Now you can run `test_flaskr.py`.
         - `questions: list`: A list of matching questions
         - `total_questions: int`: The number of matching questions
 - Sample
-    - Request: ` curl -X POST -H "Content-Type: application/json" -d '{"search_term": "title"}' localhost:5000/questions/search`
+    - Request: `curl -X POST -H "Content-Type: application/json" -d '{"search_term": "title"}' localhost:5000/questions/search`
     - Response: 
     <details>
     <summary>Click to expand</summary>
