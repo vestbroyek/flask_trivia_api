@@ -1,19 +1,24 @@
-import os
+from dotenv import load_dotenv
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-import random
-
 from models import db, Question, Category
+import os
+import random
 
 QUESTIONS_PER_PAGE = 10
 
 
 def create_app(test_config=None):
     # create and configure app
+
+    # load secrets
+    load_dotenv()
+    database_uri = os.getenv("SQLALCHEMY_DATABASE_URI")
+
     app = Flask(__name__)
     app.config.from_mapping(
-        SQLALCHEMY_DATABASE_URI="postgresql://student:password@localhost:5432/trivia",
+        SQLALCHEMY_DATABASE_URI=database_uri,
         FLASK_ENV="development",
         DEBUG=True,
     )
@@ -90,7 +95,7 @@ def create_app(test_config=None):
 
             return jsonify({"success": True})
 
-        except:
+        except Exception:
             abort(422)
 
     @app.route("/questions", methods=["POST"])
@@ -111,9 +116,10 @@ def create_app(test_config=None):
             # Create new question
             new_question = Question(question, answer, difficulty, category)
             new_question.insert()
-        except:
-            # Catch all exceptions if the keys are present but something else fails
+        except Exception:
+            # Catch all other exceptions
             abort(500)
+
 
         return jsonify({"success": True})
 
@@ -126,7 +132,7 @@ def create_app(test_config=None):
             abort(400)
 
         # Search db
-        result = Question.query.filter(Question.question.icontains(query))
+        result = Question.query.filter(Question.question.ilike(f"%{query}%"))
         formatted_result = [question.format() for question in result]
 
         return jsonify(
